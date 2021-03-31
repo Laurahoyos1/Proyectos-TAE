@@ -1,0 +1,112 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+```
+
+
+```{r}
+datos <- read.csv("./CaracteristicasHogar.csv", sep="\t", header=T)
+```
+
+```{r}
+filtrado <- datos %>% select(c(DIRECTORIO, ORDEN, P6020, P6034, P6051, P5502, P756S1, 
+                               P6081, P6087, P6083, P6088, P1895, P1896, P8587))
+
+filtrado <- filtrado %>% rename(
+  Sexo = P6020,
+  Fecha_nacimiento = P6034,
+  Parentesco = P6051,
+  Estado_civil = P5502, 
+  Depertamento = P756S1,
+  Padre_esta_vivo = P6081,
+  Escolaridad_padre = P6087,
+  Madre_esta_viva = P6083,
+  Escolaridad_madre = P6088,
+  Grado_satisfaccion_de_vida = P1895, 
+  Grado_satisfaccion_ingresos = P1896,
+  Nivel_educativo = P8587
+)
+```
+
+```{r}
+directorios <- filtrado %>% distinct(DIRECTORIO)
+```
+
+```{r}
+nivelEducativoPareja <- filtrado %>% 
+                        filter(Parentesco == 2) %>% 
+                        select(DIRECTORIO, Nivel_educativo, Grado_satisfaccion_de_vida,
+                               Escolaridad_padre, Escolaridad_madre) %>%
+                        rename(Nivel_educativo_pareja = Nivel_educativo, 
+                               Grado_satisfaccion_de_vida_pareja = Grado_satisfaccion_de_vida,
+                               Escolaridad_padre_pareja = Escolaridad_padre,
+                               Escolaridad_madre_pareja = Escolaridad_madre)
+nivelEducativoPareja
+```
+
+
+
+```{r}
+datos %>%
+  filter(P6051 == 3) %>%
+  group_by(DIRECTORIO) %>%
+  summarise(n())
+```
+
+```{r}
+nivelEducativo <- filtrado %>% 
+                  filter(Parentesco == 1) %>% 
+                  select(DIRECTORIO, Nivel_educativo, Estado_civil, Grado_satisfaccion_de_vida, 
+                         Escolaridad_padre, Escolaridad_madre) %>%
+                  rename(Nivel_educativo_jefe = Nivel_educativo,
+                         Estado_civil_jefe = Estado_civil,
+                         Grado_satisfaccion_de_vida_jefe = Grado_satisfaccion_de_vida,
+                         Escolaridad_padre_jefe = Escolaridad_padre, 
+                         Escolaridad_madre_jefe = Escolaridad_madre)
+nivelEducativo
+```
+
+```{r}
+numeroHijos <- filtrado %>% filter(Parentesco == 3) %>% group_by(DIRECTORIO) %>% summarise(Hijos=n())
+numeroHijos
+```
+
+```{r}
+numeroDePersonasPorCasa <-  filtrado %>% group_by(DIRECTORIO) %>% summarise(Numero_personas_por_casa=n())
+numeroDePersonasPorCasa
+```
+
+
+```{r}
+entradas <-  directorios %>% 
+  inner_join(nivelEducativoPareja, by="DIRECTORIO") %>% 
+  inner_join(nivelEducativo, by="DIRECTORIO") %>%
+  inner_join(numeroHijos, by="DIRECTORIO") %>%
+  inner_join(numeroDePersonasPorCasa, by="DIRECTORIO")
+```
+
+```{r}
+prueba <- entradas %>% select(Grado_satisfaccion_de_vida_jefe, Hijos) %>% group_by(Grado_satisfaccion_de_vida_jefe)
+prueba
+
+```
+```{r}
+p <- prueba %>%
+  ggplot( aes(x=Grado_satisfaccion_de_vida_jefe, fill=as.factor(Hijos) )) +
+    geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity') +
+    labs(fill="")
+p
+```
+```{r}
+table(prueba)
+```
+```{r}
+write.csv(entradas,"VariablesEntrada.csv")
+```
+
