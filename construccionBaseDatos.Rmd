@@ -105,7 +105,7 @@ entradas <- entradas %>% mutate(Nivel_educativo_pareja = as.factor(Nivel_educati
       "Tecnico sin titulo" = "6",
       "Tecnico con titulo" = "7",
       "Tecnologico sin titulo" = "8",
-      "Tecnológico con titulo" = "9",
+      "Tecnologico con titulo" = "9",
       "Universitario sin titulo" = "10",
       "Universitario con titulo" = "11",
       "Postgrado sin titulo" = "12",
@@ -125,7 +125,7 @@ entradas <- entradas %>% mutate(Nivel_educativo_jefe = as.factor(Nivel_educativo
       "Tecnico sin titulo" = "6",
       "Tecnico con titulo" = "7",
       "Tecnologico sin titulo" = "8",
-      "Tecnológico con titulo" = "9",
+      "Tecnologico con titulo" = "9",
       "Universitario sin titulo" = "10",
       "Universitario con titulo" = "11",
       "Postgrado sin titulo" = "12",
@@ -202,7 +202,20 @@ entradas <- entradas %>% mutate(Escolaridad_madre_pareja = as.factor(Escolaridad
 ```
 
 ```{r}
-#write.csv(entradas,"VariablesEntrada.csv")
+entradas <- entradas %>% mutate(Estado_civil_jefe = as.factor(Estado_civil_jefe))%>% 
+  mutate(Estado_civil_jefe = fct_recode(Estado_civil_jefe,
+      "No esta casado(a) y vive en pareja hace menos de dos años" = "1",
+      "No esta casado(a) y vive en pareja hace dos años o mas" = "2",
+      "Menos de dos años 2 No esta" = "3",
+      "Esta separado(a) o divorciado(a)" = "4",
+      "Esta soltero(a)" = "5",
+      "Esta casado(a)" = "6",
+  )
+)
+```
+
+```{r}
+write.csv(entradas,"VariablesEntrada.csv")
 ```
 
 
