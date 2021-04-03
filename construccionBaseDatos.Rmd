@@ -6,7 +6,6 @@ output: html_notebook
 ```{r}
 library(tidyverse)
 library(ggplot2)
-
 ```
 
 
@@ -106,7 +105,122 @@ p
 ```{r}
 table(prueba)
 ```
+
+
+```{r}
+entradas <- entradas %>% mutate(Nivel_educativo_pareja = as.factor(Nivel_educativo_pareja))%>% 
+  mutate(Nivel_educativo_pareja = fct_recode(Nivel_educativo_pareja,
+      "Ninguno" = "1",
+      "Preescolar" = "2",
+      "Basica Primaria (1º - 5º)" = "3",
+      "Basica secundaria (6º- 9º)" = "4",
+      "Media (10º--13º)" = "5",
+      "Tecnico sin titulo" = "6",
+      "Tecnico con titulo" = "7",
+      "Tecnologico sin titulo" = "8",
+      "Tecnológico con título" = "9",
+      "Universitario sin titulo" = "10",
+      "Universitario con titulo" = "11",
+      "Postgrado sin titulo" = "12",
+      "Postgrado con titulo" = "13"
+  )
+)
+```
+
+```{r}
+entradas <- entradas %>% mutate(Nivel_educativo_jefe = as.factor(Nivel_educativo_jefe))%>% 
+  mutate(Nivel_educativo_jefe = fct_recode(Nivel_educativo_jefe,
+      "Ninguno" = "1",
+      "Preescolar" = "2",
+      "Basica Primaria (1º - 5º)" = "3",
+      "Basica secundaria (6º- 9º)" = "4",
+      "Media (10º--13º)" = "5",
+      "Tecnico sin titulo" = "6",
+      "Tecnico con titulo" = "7",
+      "Tecnologico sin titulo" = "8",
+      "Tecnológico con título" = "9",
+      "Universitario sin titulo" = "10",
+      "Universitario con titulo" = "11",
+      "Postgrado sin titulo" = "12",
+      "Postgrado con titulo" = "13"
+  )
+)
+```
+```{r}
+entradas <- entradas %>% mutate(Escolaridad_madre_jefe = as.factor(Escolaridad_madre_jefe))%>% 
+  mutate(Escolaridad_madre_jefe = fct_recode(Escolaridad_madre_jefe,
+      "Algunos años de primaria" = "1",
+      "Toda la primaria" = "2",
+      "Algunos años de secundaria" = "3",
+      "Toda la secundaria" = "4",
+      "Uno o mas años de técnica o tecnológica" = "5",
+      "Técnica o tecnológica completa" = "6",
+      "Uno o mas años de universidad" = "7",
+      "Universitaria completa" = "8",
+      "Ninguno" = "9",
+      "No sabe" = "10",
+  )
+)
+```
+
+```{r}
+entradas <- entradas %>% mutate(Escolaridad_padre_jefe = as.factor(Escolaridad_padre_jefe))%>% 
+  mutate(Escolaridad_padre_jefe = fct_recode(Escolaridad_padre_jefe,
+      "Algunos años de primaria" = "1",
+      "Toda la primaria" = "2",
+      "Algunos años de secundaria" = "3",
+      "Toda la secundaria" = "4",
+      "Uno o mas años de técnica o tecnológica" = "5",
+      "Técnica o tecnológica completa" = "6",
+      "Uno o mas años de universidad" = "7",
+      "Universitaria completa" = "8",
+      "Ninguno" = "9",
+      "No sabe" = "10",
+  )
+)
+```
+
+```{r}
+entradas <- entradas %>% mutate(Escolaridad_padre_pareja = as.factor(Escolaridad_padre_pareja))%>% 
+  mutate(Escolaridad_padre_pareja = fct_recode(Escolaridad_padre_pareja,
+      "Algunos años de primaria" = "1",
+      "Toda la primaria" = "2",
+      "Algunos años de secundaria" = "3",
+      "Toda la secundaria" = "4",
+      "Uno o mas años de técnica o tecnológica" = "5",
+      "Técnica o tecnológica completa" = "6",
+      "Uno o mas años de universidad" = "7",
+      "Universitaria completa" = "8",
+      "Ninguno" = "9",
+      "No sabe" = "10",
+  )
+)
+```
+
+```{r}
+entradas <- entradas %>% mutate(Escolaridad_madre_pareja = as.factor(Escolaridad_madre_pareja))%>% 
+  mutate(Escolaridad_madre_pareja = fct_recode(Escolaridad_madre_pareja,
+      "Algunos años de primaria" = "1",
+      "Toda la primaria" = "2",
+      "Algunos años de secundaria" = "3",
+      "Toda la secundaria" = "4",
+      "Uno o mas años de técnica o tecnológica" = "5",
+      "Técnica o tecnológica completa" = "6",
+      "Uno o mas años de universidad" = "7",
+      "Universitaria completa" = "8",
+      "Ninguno" = "9",
+      "No sabe" = "10",
+  )
+)
+```
+
+```{r}
+entradas
+#na.omit(entradas)
+```
+
 ```{r}
 write.csv(entradas,"VariablesEntrada.csv")
 ```
+
 
