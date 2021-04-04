@@ -2,6 +2,8 @@
 ```{r}
 library(ggplot2)
 library(gridExtra)
+library(viridis)
+library(plotly)
 ```
 
 ```{r}
@@ -56,28 +58,28 @@ p1 <- ggplot(datos, aes(Escolaridad_madre_jefe)) +
           theme(axis.text.x = element_text(angle = 45, hjust = 1),
                 plot.margin = margin(0,0,2,1, "cm")) +
           ylim(0,5000) +
-          labs(y="Frecuencia", x = "Escolaridad madre jefe", title="Grado satisfaccion de vida pareja") 
+          labs(y="Frecuencia", x = "Escolaridad madre jefe", title="Escolaridad madre jefe") 
 
 p2 <- ggplot(datos, aes(Escolaridad_madre_pareja)) + 
           geom_bar(fill="#F3BC89") +
           theme(axis.text.x = element_text(angle = 45, hjust = 1),
                 plot.margin = margin(0,0,2,1, "cm")) +
           ylim(0,5000) +
-          labs(y="Frecuencia", x = "Escolaridad madre pareja", title="Grado satisfaccion de vida jefe")
+          labs(y="Frecuencia", x = "Escolaridad madre pareja", title="Escolaridad madre pareja")
 
 p3 <- ggplot(datos, aes(Escolaridad_padre_jefe)) + 
           geom_bar(fill="#558D95") +
           theme(axis.text.x = element_text(angle = 45, hjust = 1),
                 plot.margin = margin(0,0,2,1, "cm")) +
           ylim(0,5000) +
-          labs(y="Frecuencia", x = "Escolaridad padre jefe", title="Grado satisfaccion de vida pareja") 
+          labs(y="Frecuencia", x = "Escolaridad padre jefe", title="Escolaridad padre jefe") 
 
 p4 <- ggplot(datos, aes(Escolaridad_padre_pareja)) + 
           geom_bar(fill="#69BA77") +
           theme(axis.text.x = element_text(angle = 45, hjust = 1),
                 plot.margin = margin(0,0,2,1, "cm")) +
           ylim(0,5000) +
-          labs(y="Frecuencia", x = "Escolaridad padre pareja", title="Grado satisfaccion de vida jefe")
+          labs(y="Frecuencia", x = "Escolaridad padre pareja", title="Escolaridad padre pareja")
 
 
 grid.arrange(p1, p2, p3, p4, ncol=2)
@@ -99,51 +101,92 @@ ggplot(datos, aes(Estado_civil_jefe)) +
 
 ```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
 datos$Hijos<-as.integer(datos$Hijos)
-ggplot(data = datos) + 
-  geom_count(aes(Nivel_educativo_jefe,Hijos)) + 
+p1 <- ggplot(data = datos, aes(Nivel_educativo_jefe,Hijos)) + 
+  geom_count() + 
+  aes(color=as.factor(..n..)) +
   ggtitle("Hijos por nivel educativo") + 
   labs(x = "Nivel Educativo jefe",y = "Hijos") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
-  scale_y_continuous(breaks = seq(1, 10, length.out=10))
+  scale_y_continuous(breaks = seq(1, 10, length.out=10))+ 
+  scale_colour_viridis_d(option="magma")
+
+plotly::ggplotly(p1)
+```   
+
+```{r}
+#table(datos$Estado_civil_jefe)
+print(levels(datos$Estado_civil_jefe))
 ```
 
-
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-ggplot(data = datos) + 
-  geom_bin2d(aes(Nivel_educativo_jefe, Hijos,colour=factor(Estado_civil_jefe))) +
-  ggtitle ("Hijos por nivel educativo/Distinción por Estado Civil") + 
-  labs(x = "Nivel Educativo jefe",y = "Hijos") + 
+```{r,warning=FALSE,message=FALSE,fig.width=15,fig.height=4}
+p1 <- ggplot(data = datos) + 
+  geom_bin2d(aes(Nivel_educativo_jefe, Hijos)) +
+  facet_wrap(~factor(Estado_civil_jefe,
+                      levels = levels(datos$Estado_civil_jefe),
+                      labels = c("Esta casado(a)", 
+                                 "Esta separado(a) o divorciado(a)", 
+                                 "Esta soltero(a)", 
+                                 "Esta viudo", 
+                                 "Vive en pareja dos anios o mas", 
+                                 "Vive en pareja dos anios o menos"))
+             ) +
+  ggtitle ("Hijos por nivel educativo y estado civil") + 
+  labs(x = "", y="Hijos") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  scale_y_continuous(breaks = seq(1, 10, length.out=10))+ 
+  scale_fill_gradient(low="lightblue1",high="darkblue") 
   
 
-
+plotly::ggplotly(p1)
 ```
+
+
+
+
+
 ```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-ggplot(data = datos) + 
-  geom_col(aes(Nivel_educativo_jefe, Hijos,colour=factor(Grado_satisfaccion_de_vida_jefe)))+ ggtitle ("Hijos por nivel educativo/Distinción por Grado de Satisfacción")+ labs(x = "Nivel Educativo jefe",y = "Hijos") 
+p1 <- ggplot(data = datos) + 
+  geom_col(aes(Nivel_educativo_jefe, Hijos,fill=as.factor(Grado_satisfaccion_de_vida_jefe))) + 
+  ggtitle ("Hijos por nivel educativo/Distinción por Grado de Satisfacción") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  labs(x = "Nivel Educativo jefe", y="Hijos")
+
+plotly::ggplotly(p1)
 ```
+
+
 ```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-ggplot(data = datos) + 
-  geom_count(aes(Nivel_educativo_jefe, Hijos,colour=factor(Estado_civil_jefe)))+ ggtitle ("Hijos por nivel educativo/Distinción por Estado civil")+ labs(x = "Nivel Educativo jefe",y = "Hijos") 
+p1 <- ggplot(data = datos) + 
+  geom_bin2d(aes(Nivel_educativo_jefe, Numero_personas_por_casa)) +
+  facet_wrap(~factor(Estado_civil_jefe,
+                      levels = levels(datos$Estado_civil_jefe),
+                      labels = c("Esta casado(a)", 
+                                 "Esta separado(a) o divorciado(a)", 
+                                 "Esta soltero(a)", 
+                                 "Esta viudo", 
+                                 "Vive en pareja dos anios o mas", 
+                                 "Vive en pareja dos anios o menos"))
+             ) +
+  ggtitle ("Numero de personas por nivel educativo y estado civil") + 
+  labs(x = "", y="Hijos") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  scale_fill_gradient(low="lightblue1",high="darkblue") 
+
+plotly::ggplotly(p1)
+
 ```
+
+
+
 ```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-ggplot(data = datos) + 
-  geom_count(aes(Nivel_educativo_jefe,Numero_personas_por_casa,colour=factor(Estado_civil_jefe)))+ ggtitle ("personas en casa por nivel educativo/Distinción por Estado civil")+ labs(x = "Nivel Educativo jefe",y = "personas por casa") 
-```
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-ggplot(data = datos) + 
-  geom_count(aes(Nivel_educativo_jefe,Numero_personas_por_casa,colour=factor(Grado_satisfaccion_de_vida_jefe)))+ ggtitle ("personas en casa por nivel educativo/Distinción por grado de satisfacción")+ labs(x = "Nivel Educativo jefe",y = "personas por casa") 
+p1 <- ggplot(data = datos) + 
+  geom_col(aes(Nivel_educativo_jefe, Numero_personas_por_casa,fill=as.factor(Grado_satisfaccion_de_vida_jefe))) + 
+  ggtitle ("Numero de personas por caso por nivel educativo/Distinción por Grado de Satisfacción") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  labs(x = "Nivel Educativo jefe", y="Numero de personas")
+
+plotly::ggplotly(p1)
 ```
 
 
 
-
-```{r}
-p <- prueba %>%
-  ggplot( aes(x=Grado_satisfaccion_de_vida_jefe, fill=as.factor(Hijos) )) +
-    geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity') +
-    labs(fill="")
-p
-```
-```{r}
-table(prueba)
-```

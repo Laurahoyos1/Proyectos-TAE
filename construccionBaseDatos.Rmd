@@ -204,9 +204,9 @@ entradas <- entradas %>% mutate(Escolaridad_madre_pareja = as.factor(Escolaridad
 ```{r}
 entradas <- entradas %>% mutate(Estado_civil_jefe = as.factor(Estado_civil_jefe))%>% 
   mutate(Estado_civil_jefe = fct_recode(Estado_civil_jefe,
-      "No esta casado(a) y vive en pareja hace menos de dos años" = "1",
-      "No esta casado(a) y vive en pareja hace dos años o mas" = "2",
-      "Menos de dos años 2 No esta" = "3",
+      "No esta casado(a) y vive en pareja hace menos de dos anios" = "1",
+      "No esta casado(a) y vive en pareja hace dos anios o mas" = "2",
+      "Esta viudo(a)" = "3",
       "Esta separado(a) o divorciado(a)" = "4",
       "Esta soltero(a)" = "5",
       "Esta casado(a)" = "6",
