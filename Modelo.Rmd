@@ -1,12 +1,20 @@
 ---
-title: "Codigo"
+title: "modelo TAE"
 author: "Laura Daniela Hoyos Peña"
 date: "29/3/2021"
 output: html_document
 ---
+
+
+```{r}
+library(psych)
+library(caret)
+library(tidyverse)
+```
+
 ```{r}
 datos<-read.csv("VariablesEntrada.csv",header = TRUE,sep = ",")#39602 observaciones
-datos<-na.omit(datos)#19323 observaciones
+datos<-na.omit(datos, na.action="omit")#19323 observaciones
 ```
 ```{r}
 #'Estructura de los datos 
@@ -19,83 +27,32 @@ datos$Estado_civil_jefe<-as.factor(datos$Estado_civil_jefe)
 datos$Grado_satisfaccion_de_vida_jefe<-as.factor(datos$Grado_satisfaccion_de_vida_jefe)
 datos$Escolaridad_padre_jefe<-as.factor(datos$Escolaridad_padre_jefe)
 datos$Escolaridad_madre_jefe<-as.factor(datos$Escolaridad_madre_jefe)
-datos$Hijos<-as.numeric(datos$Hijos)
-datos$Numero_personas_por_casa<-as.numeric(datos$Numero_personas_por_casa)
-
-```
-```{r}
-dim(datos)#dimensión de la matriz de datos 
-```
-```{r,fig.width=8,fig.height=4}
-# Grafico de Barras para las variables de nivel de educación
-par(mfrow=c(1,2))
-barplot(table(datos$Nivel_educativo_pareja),xlab="nivel educ pareja", ylab="Frecuencia")
-barplot(table(datos$Nivel_educativo_jefe),xlab="nivel educ jefe", ylab="Frecuencia")
-```
-```{r,fig.width=8,fig.height=4}
-# Grafico de Barras para las variables de grados de satisfacción
-par(mfrow=c(1,2))
-barplot(table(datos$Grado_satisfaccion_de_vida_pareja),,xlab="grado satis pareja", ylab="Frecuencia")
-barplot(table(datos$Grado_satisfaccion_de_vida_jefe),xlab="grado satis jefe", ylab="Frecuencia")
-```
-```{r,fig.width=8,fig.height=4}
-# Grafico de Barras para las variables de escolaridad
-par(mfrow=c(2,2))
-barplot(table(datos$Escolaridad_madre_jefe),xlab="escolaridad madre  jefe", ylab="Frecuencia")
-barplot(table(datos$Escolaridad_madre_pareja),xlab="escolaridad madre pareja", ylab="Frecuencia")
-barplot(table(datos$Escolaridad_padre_jefe),xlab="escolaridad padre jefe", ylab="Frecuencia")
-barplot(table(datos$Escolaridad_padre_pareja),xlab="escolaridad padre jefe", ylab="Frecuencia")
-```
-```{r,fig.width=8,fig.height=5}
-
-# Grafico de Barras para las variables estado civil, numero de hijos y personas en casa 
-par(mfrow=c(2,2))
-barplot(table(datos$Estado_civil_jefe),xlab="estado civil jefe", ylab="Frecuencia")
-```
-
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
 datos$Hijos<-as.integer(datos$Hijos)
-library(ggplot2)
-ggplot(data = datos) + 
-  geom_bin2d(aes(Nivel_educativo_jefe,Hijos))+ ggtitle ("Hijos por nivel educativo")+ labs(x = "Nivel Educativo jefe",y = "Hijos") 
-```
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-library(ggplot2)
-ggplot(data = datos) + 
-  geom_bin2d(aes(Nivel_educativo_jefe, Hijos,colour=factor(Estado_civil_jefe)))+ ggtitle ("Hijos por nivel educativo/Distinción por Estado Civil")+ labs(x = "Nivel Educativo jefe",y = "Hijos") 
-
+datos$Numero_personas_por_casa<-as.integer(datos$Numero_personas_por_casa)
 
 ```
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-library(ggplot2)
-ggplot(data = datos) + 
-  geom_col(aes(Nivel_educativo_jefe, Hijos,colour=factor(Grado_satisfaccion_de_vida_jefe)))+ ggtitle ("Hijos por nivel educativo/Distinción por Grado de Satisfacción")+ labs(x = "Nivel Educativo jefe",y = "Hijos") 
-```
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-library(ggplot2)
-ggplot(data = datos) + 
-  geom_count(aes(Nivel_educativo_jefe, Hijos,colour=factor(Estado_civil_jefe)))+ ggtitle ("Hijos por nivel educativo/Distinción por Estado civil")+ labs(x = "Nivel Educativo jefe",y = "Hijos") 
-```
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-library(ggplot2)
-ggplot(data = datos) + 
-  geom_count(aes(Nivel_educativo_jefe,Numero_personas_por_casa,colour=factor(Estado_civil_jefe)))+ ggtitle ("personas en casa por nivel educativo/Distinción por Estado civil")+ labs(x = "Nivel Educativo jefe",y = "personas por casa") 
-```
-```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
-library(ggplot2)
-ggplot(data = datos) + 
-  geom_count(aes(Nivel_educativo_jefe,Numero_personas_por_casa,colour=factor(Grado_satisfaccion_de_vida_jefe)))+ ggtitle ("personas en casa por nivel educativo/Distinción por grado de satisfacción")+ labs(x = "Nivel Educativo jefe",y = "personas por casa") 
-```
+
 ###MODELOS
+
 ##KNN
+
+```{r}
+datos_sel <- datos %>% 
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos','Numero_personas_por_casa')) %>%
+    mutate(Nivel_educativo_jefe = as.data.frame(dummy.code(Nivel_educativo_jefe))) %>%
+    mutate(Estado_civil_jefe = as.data.frame(dummy.code(Estado_civil_jefe)))  
+```
+
+
 ```{r}
 numero<-123456789
 set.seed(numero)
 subset<-sample((1:nrow(datos)), (nrow(datos)/2)+1)
-Train<-datos[subset,] #9662 datos Entrena
-Test<-datos[-subset,] #9661 datos Validación
-Train1<-Train[,-12]
-Test1<-Test[,-12]
+#datos_sel <- subset(datos,select = #c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos','Numero_personas_por_casa'))
+Train<-datos_sel[subset,] #9662 datos Entrena
+Test<-datos_sel[-subset,] #9661 datos Validación
+Train1<-Train[,-4]
+Test1<-Test[,-4]
 y_Train<-Train$Hijos
 y_Test<-Test$Hijos
 ```
@@ -103,82 +60,45 @@ y_Test<-Test$Hijos
 ##Selección del K óptimo
 
 ```{r,warning=FALSE,message=FALSE}
-library(caret)
+
 cv10<-trainControl(method='cv',number = 10)
 set.seed(123456789)
 fit<-train(Hijos~Nivel_educativo_jefe+Grado_satisfaccion_de_vida_jefe+Estado_civil_jefe+Numero_personas_por_casa,
 method = 'knn',
 tuneGrid = expand.grid(k=1:20),
 trControl = cv10,
-metric = "Accuracy",
+metric = "RMSE",
 data = datos)
 fit
 ```
 
-#K=1
+#K=18
 ```{r}
 library(class)
-mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=1)
-mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=1)
+mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=18,prob = TRUE, use.all = TRUE)
+mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=18)
+summary(mod_knn_test)
+summary(mod_knn_train)
+summary(as.factor(y_Train))
 library(caret)
-matriz_confusion<-confusionMatrix(mod_knn_train,y_Train)
+matriz_confusion<-confusionMatrix(mod_knn_train, as.factor(y_Train))
 matriz_confusion$table
 error_knn<-1-matriz_confusion$overall['Accuracy']
 names(error_knn) <- 'Tasa de error'
 error_knn #Tasa de error
 ```
-#K=10
 ```{r}
-library(class)
-mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=10)
-mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=10)
-library(caret)
-matriz_confusion<-confusionMatrix(mod_knn_train,y_Train)
-matriz_confusion$table
-error_knn<-1-matriz_confusion$overall['Accuracy']
-names(error_knn) <- 'Tasa de error'
-error_knn #Tasa de error
-```
-#K=50
-```{r}
-library(class)
-mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=50)
-mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=50)
-library(caret)
-matriz_confusion<-confusionMatrix(mod_knn_train,y_Train)
-matriz_confusion$table
-error_knn<-1-matriz_confusion$overall['Accuracy']
-names(error_knn) <- 'Tasa de error'
-error_knn #Tasa de error
-```
-#K=100
-```{r}
-library(class)
-mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=100)
-mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=100)
-library(caret)
-matriz_confusion<-confusionMatrix(mod_knn_train,y_Train)
-matriz_confusion$table
-error_knn<-1-matriz_confusion$overall['Accuracy']
-names(error_knn) <- 'Tasa de error'
-error_knn #Tasa de error
-```
-#K=150
-```{r}
-library(class)
-mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=150)
-mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=150)
-library(caret)
-matriz_confusion<-confusionMatrix(mod_knn_train,y_Train)
-matriz_confusion$table
-error_knn<-1-matriz_confusion$overall['Accuracy']
-names(error_knn) <- 'Tasa de error'
-error_knn #Tasa de error
+matriz_confusion
 ```
 
 
 
 
+
+
+```{r}
+summary(as.factor(datos$Hijos))
+```
 
 
 
