@@ -16,21 +16,6 @@ library(tidyverse)
 datos<-read.csv("VariablesEntrada.csv",header = TRUE,sep = ",")#39602 observaciones
 datos<-na.omit(datos, na.action="omit")#19323 observaciones
 ```
-```{r}
-#'Estructura de los datos 
-datos$Nivel_educativo_pareja<-as.factor(datos$Nivel_educativo_pareja)
-datos$Grado_satisfaccion_de_vida_pareja<-as.factor(datos$Grado_satisfaccion_de_vida_pareja)
-datos$Escolaridad_padre_pareja<-as.factor(datos$Escolaridad_padre_pareja)
-datos$Escolaridad_madre_pareja<-as.factor(datos$Escolaridad_madre_pareja)
-datos$Nivel_educativo_jefe<-as.factor(datos$Nivel_educativo_jefe)
-datos$Estado_civil_jefe<-as.factor(datos$Estado_civil_jefe)
-datos$Grado_satisfaccion_de_vida_jefe<-as.factor(datos$Grado_satisfaccion_de_vida_jefe)
-datos$Escolaridad_padre_jefe<-as.factor(datos$Escolaridad_padre_jefe)
-datos$Escolaridad_madre_jefe<-as.factor(datos$Escolaridad_madre_jefe)
-datos$Hijos<-as.integer(datos$Hijos)
-datos$Numero_personas_por_casa<-as.integer(datos$Numero_personas_por_casa)
-
-```
 
 ###MODELOS
 
@@ -74,13 +59,11 @@ fit
 
 #K=18
 ```{r}
-library(class)
 mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=18,prob = TRUE, use.all = TRUE)
 mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=18)
 summary(mod_knn_test)
 summary(mod_knn_train)
 summary(as.factor(y_Train))
-library(caret)
 matriz_confusion<-confusionMatrix(mod_knn_train, as.factor(y_Train))
 matriz_confusion$table
 error_knn<-1-matriz_confusion$overall['Accuracy']
