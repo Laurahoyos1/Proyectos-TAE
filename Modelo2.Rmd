@@ -24,15 +24,16 @@ datos<-na.omit(datos, na.action="omit")#19323 observaciones
 
 
 
+
 ```{r}
 datos %>% 
-  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos','Numero_personas_por_casa'))%>%
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos'))%>%
   head()
 ```
 
 ```{r}
 datos_sel <- datos %>% 
-  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos','Numero_personas_por_casa')) %>%
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos')) %>%
     mutate(Nivel_educativo_jefe = as.data.frame(dummy.code(Nivel_educativo_jefe))) %>%
     mutate(Estado_civil_jefe = as.data.frame(dummy.code(Estado_civil_jefe)))  
 ```
@@ -50,6 +51,11 @@ Test1<-Test[,-4]
 y_Train<-Train$Hijos
 y_Test<-Test$Hijos
 ```
+
+```{r}
+save.image(file = "PrediccionHijos/Variables.Rdata")
+```
+
 ###KNN
 ##Selección del K óptimo
 
@@ -64,6 +70,10 @@ trControl = cv10,
 metric = "RMSE",
 data = datos)
 fit
+```
+
+```{r}
+
 ```
 
 #K=18
@@ -124,9 +134,63 @@ mod_knn_train<-knn(train=Train1,test=EntradasParaPredecir,cl=y_Train,k=18,prob =
 
 ```{r}
 summary(mod_knn_train)
+as.vector(mod_knn_train)
 ```
 
 ```{r}
-class(mod_knn_train)
+datos_originales <- datos %>% 
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos'))
+
+ejemplo <- datos %>% 
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos'))%>%
+  head(1)
+
+
+print(datos_originales)
+print(ejemplo)
+test <- datos_originales %>% add_row(Nivel_educativo_jefe = as.factor("Basica Primaria (1 - 5)"),
+                      Estado_civil_jefe = as.factor("Esta casado(a)"),
+                      Grado_satisfaccion_de_vida_jefe= 1 ,
+                      Hijos= 2 )
+test <- test %>% tail(1)
+
+print(ejemplo$Nivel_educativo_jefe)
+print(test$Nivel_educativo_jefe)
+print(test %>% tail(1))
+print( )
+```
+```{r}
+as.factor(c("Basica Primaria (1 - 5)"))
+```
+
+```{r}
+test %>%
+    mutate(Nivel_educativo_jefe = as.data.frame(dummy.code(Nivel_educativo_jefe))) %>%
+    mutate(Estado_civil_jefe = as.data.frame(dummy.code(Estado_civil_jefe))) %>% tail()
+```
+```{r}
+print(dim(test[-4]))
+print(dim(Train1))
+print(test)
+```
+
+
+```{r}
+mod_knn_train<-knn(train=Train1,test=test[-4],cl=y_Train,k=18,prob = TRUE, use.all = TRUE)
+as.vector(mod_knn_train)
+```
+
+```{r}
+
+test <- datos_originales %>% 
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos')) %>%
+  add_row(Nivel_educativo_jefe = as.factor("Basica Primaria (1 - 5)"),
+                      Estado_civil_jefe = as.factor("Esta viudo(a)"),
+                      Grado_satisfaccion_de_vida_jefe= 8 ,
+                      Hijos= 1 ) %>%
+    mutate(Nivel_educativo_jefe = as.data.frame(dummy.code(Nivel_educativo_jefe))) %>%
+    mutate(Estado_civil_jefe = as.data.frame(dummy.code(Estado_civil_jefe)))  %>%
+      tail(1)
+test
 ```
 

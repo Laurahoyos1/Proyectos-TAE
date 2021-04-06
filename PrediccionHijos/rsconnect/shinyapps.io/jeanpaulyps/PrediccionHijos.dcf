@@ -1,0 +1,12 @@
+name: PrediccionHijos
+title: PrediccionHijos
+username:
+account: jeanpaulyps
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3915303
+bundleId: 4435630
+url: https://jeanpaulyps.shinyapps.io/PrediccionHijos/
+when: 1617678563.02378
+asMultiple: FALSE
+asStatic: FALSE
