@@ -1,0 +1,446 @@
+---
+title: "Trabajo 1: TAE"
+author: "Laura Daniela Hoyos Peña, Jean Paul, Hans, Juan Camilo"
+date: "Abril del 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<div style="text-align: justify">
+
+### Introducción 
+
+El presente informe se construye con base a la información de la encuesta de Calidad de Vida publicada en el año 2019, el apartado de características y composición del hogar del Departamento Nacional de Estadísticas $\textbf{DANE}$, la cuál es la entidad responsable de la planeación, levantamiento, procesamiento, ánalisis y difusión de las estadísticas oficiales en Colombia.
+
+En dicho apartado se describen variables relacionadas con los hogares de las familias encuestadas,las personas y parentescos que existe en los hogares, aspectos demográficos de cada uno y el bienestar subjetivo de cada individuo. 
+
+En la literatura se encuentra que el desempeño económico está asociado con la reducción del tiempo que demora en nacer un hijo a el otro. Según un articulo el crecimiento del factor económico está directamente implicado en la decisión de un hogar de fecundar un hijo, si las condicones se mantienen o disminuyen entonces  se reduce la búsqueda de un hijo.
+El ejercicio que se desarrolla no incluye el factor económico en el modelo, pues la base de datos inicial se enfoca en otros factores; por eso desde ahora se puede explicar que quizás el ajuste del modelo no ajusta perfecto a los datos, porque para explicar él número de hijos se podría tener en cuenta, además otras categorías. 
+
+El presente informe y posterior modelo estadístico,explica a través de ciertas características el número de hijos que posee los hogares encuestados de la superficie nacional; con la cuál se pretende "caracterizar" las familias y poder establecer relaciones incluso a futuro. 
+Fuente: DANE
+
+### Objetivo
+
+$\textbf{1}$. Crear,organizar y ánalizar una base de datos con base a la información recolectada del $\textit{DANE}$, con el objetivo de caracterizar a las familias encuestadas a partir de ciertas categorías. 
+
+$\textbf{2}$. Implementar un modelo predictivo con el cuál se logré determinar el número de hijos que tendría un hogar,a partir de unas condiciones específicas de los integrantes del mismo. 
+
+### Obtención de la Base de Datos
+
+Con la información recolectada de la pagina web del DANE, se procede a hacer una recodificación y reinterpretación de las variables. Además se crean nuevas variables a partir de los datos iniciales como por ejemplo la variable número de hijos, la cuál es para el modelo la variable respuesta. 
+
+A continuación, un resumen de la base de datos que se obtiene: 
+
+|Variable | Clase|
+|----------------- | -------------------|
+|Nivel Educativo Pareja | Categoríca |
+|Nivel Educativo Jefe | Categoríca |
+|Grado Satisfacción Pareja | Numérica |
+|Grado Satisfacción Jefe | Categoríca |
+|Escolaridad Padre Pareja | Categoríca |
+|Escolaridad Padre Jefe | Categoríca |
+|Escolaridad Madre Pareja | Categoríca |
+|Escolaridad Madre Jefe | Categoríca |
+|Estado Civil Jefe | Categoríca |
+|Número de Hijos | Numérica (Entero) |
+|Número de Personas por Casa | Numérica (Entero) |
+
+#Nota: 
+La base de datos cuenta con un total de 39.602 observaciones, pero muchos de los campos de las diferentes variables tienen espacios vacíos $\textbf{NAs}$, por ello se excluyen todas es observaciones y quedado así con un total de 19.323 observaciones. 
+
+Cada variable de tipo categorica, tiene unos niveles o categorías.
+
+### Ánalisis Descriptivo
+
+A continuación se presenta un ánalisis descriptivo de las variables de la base de datos y se analizan posibles relaciones por medio de gráficos. 
+
+En las variables se interesa indagar, por el nivel de educación, grado de satisfacción de la calidad de vida y estado civil; para la madre, el padre y el jefe de hogar - independiente de cuál sea -, además se tiene en cuenta la pareja del jefe de hogar, bajo las mismas condiciones. 
+
+```{r, message=FALSE,warning=FALSE}
+#Librerías requeridas 
+library(ggplot2)
+library(gridExtra)
+library(viridis)
+library(plotly)
+library(knitr)
+library(psych)
+library(caret)
+library(tidyverse)
+```
+
+```{r}
+#Lectura de la base de Datos
+datos<-read.csv("VariablesEntrada.csv",header = TRUE,sep = ",")#39602 observaciones
+datos<-na.omit(datos)#19323 observaciones
+```
+Se decide estudiar por bloques las variables.
+
+# Gráfico de Barras para las variables de nivel de educación
+```{r,echo=FALSE}
+datos$Nivel_educativo_pareja<-factor(datos$Nivel_educativo_pareja,levels = c("Ninguno",
+"Basica Primaria (1 - 5)",
+"Basica secundaria (6 - 9)",
+"Media (10 - 13)",
+"Tecnico sin titulo",
+"Tecnico con titulo",
+"Tecnologico sin titulo",
+"Tecnologico con titulo",
+"Universitario sin titulo",
+"Universitario con titulo",         "Postgrado sin titulo",
+"Postgrado con titulo"))
+datos$Nivel_educativo_jefe<-factor(datos$Nivel_educativo_jefe,levels = c("Ninguno",
+"Basica Primaria (1 - 5)",
+"Basica secundaria (6 - 9)",
+"Media (10 - 13)",
+"Tecnico sin titulo",
+"Tecnico con titulo",
+"Tecnologico sin titulo",
+"Tecnologico con titulo",
+"Universitario sin titulo",
+"Universitario con titulo",         "Postgrado sin titulo",
+"Postgrado con titulo"))
+datos$Escolaridad_padre_pareja<-factor(datos$Escolaridad_padre_pareja,levels = c("No sabe","Ninguno","Algunos anios de primaria","Toda la primaria","Algunos anios de secundaria","Toda la secundaria","Uno o mas anios de tecnica o tecnologica","Tecnica o tecnologica completa","Uno o mas anios de universidad","Universitaria completa"))
+datos$Escolaridad_madre_pareja<-factor(datos$Escolaridad_padre_pareja,levels =  c("No sabe","Ninguno","Algunos anios de primaria","Toda la primaria","Algunos anios de secundaria","Toda la secundaria","Uno o mas anios de tecnica o tecnologica","Tecnica o tecnologica completa","Uno o mas anios de universidad","Universitaria completa"))
+datos$Escolaridad_padre_jefe<-factor(datos$Escolaridad_padre_jefe,levels =  c("No sabe","Ninguno","Algunos anios de primaria","Toda la primaria","Algunos anios de secundaria","Toda la secundaria","Uno o mas anios de tecnica o tecnologica","Tecnica o tecnologica completa","Uno o mas anios de universidad","Universitaria completa"))
+datos$Escolaridad_madre_jefe<-factor(datos$Escolaridad_madre_jefe,levels =  c("No sabe","Ninguno","Algunos anios de primaria","Toda la primaria","Algunos anios de secundaria","Toda la secundaria","Uno o mas anios de tecnica o tecnologica","Tecnica o tecnologica completa","Uno o mas anios de universidad","Universitaria completa"))
+```
+
+```{r,fig.height=4,fig.width=8}
+
+p1 <- ggplot(datos, aes(Nivel_educativo_pareja)) + 
+          geom_bar(fill="#F39189") +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                plot.margin = margin(0,0,0,2, "cm")) +
+          labs(y="Frecuencia", x = "Nivel educativo pareja", title="Nivel educativo pareja") 
+
+p2 <- ggplot(datos, aes(Nivel_educativo_jefe)) + 
+          geom_bar(fill="#F3BC89") +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                plot.margin = margin(0,0,0,2, "cm")) +
+          labs(y="Frecuencia", x = "Nivel educativo jefe", title="Nivel educativo jefe")
+
+grid.arrange(p1, p2, ncol=2)
+
+
+```
+En los anteriores gráficos de barras se estudia los niveles de educación para la Pareja del jefe de hogar y para el jefe de hogar. Como era de esperarse debido a la realidad social que se conoce en un país como Colombia, la mayoría de las personas tienen un nivel educativo medio, que llega hasta la secundaria completa. En los gráficos se observa, que la mayoría tiene completa la basica primaria, la mayor cantidad de información esta sobre los primeros niveles que son desde ninguno, hasta la basica secundaria media completa. 
+
+Otro dato muy importante que conlleva a tomar decisiones, es que la distribución de la variable en estudio para los diferentes individuos es completamente igual en cuantó a la frecuencia, por ello se decide seguir usando solo la que corresponde a el jefe de hogar. 
+
+# Grafico de Barras para las variables de grados de satisfacción
+
+```{r,fig.height=4,fig.width=8}
+p1 <- ggplot(datos, aes(Grado_satisfaccion_de_vida_pareja)) + 
+          geom_bar(fill="#F39189") +
+          #theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+          ylim(0,6000) +
+          labs(y="Frecuencia", x = "Grado satisfaccion de vida pareja", title="Grado satisfaccion de vida pareja") 
+
+p2 <- ggplot(datos, aes(Grado_satisfaccion_de_vida_jefe)) + 
+          geom_bar(fill="#F3BC89") +
+          #theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+          ylim(0,6000) +
+          labs(y="Frecuencia", x = "Grado satisfaccion de vida jefe", title="Grado satisfaccion de vida jefe")
+
+grid.arrange(p1, p2, ncol=2)
+```
+Se estudia la frecuencia de el grado de satisfacción con la calidad de vidad a los jefes de hogar y a las parejas,teniendo en cuenta que la respuesta es de 0 a 10, siendo 10 el grado más alto de satisfacción; los gráficos muestran que en los hogares que hacen parte de la encuesta, están conformes con su calidad de vida y la mayor información se registra con el intervalo de niveles de 7 a 10, siendo justamente 7 y 10 los niveles que más se repiten. 
+
+De nuevo se observa una similitud casi exacta entre las distribuciones para la pareja y para el jefe de hogar, por tanto también se decide seguir usando la variable que aplica para el jefe de hogar. 
+```{r, fig.width=8,fig.height=12,warning=FALSE, message=FALSE}
+p1 <- ggplot(datos, aes(Escolaridad_madre_jefe)) + 
+          geom_bar(fill="#F39189") +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                plot.margin = margin(0,0,2,1, "cm")) +
+          ylim(0,5000) +
+          labs(y="Frecuencia", x = "Escolaridad madre jefe", title="Escolaridad madre jefe") 
+
+p2 <- ggplot(datos, aes(Escolaridad_madre_pareja)) + 
+          geom_bar(fill="#F3BC89") +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                plot.margin = margin(0,0,2,1, "cm")) +
+          ylim(0,5000) +
+          labs(y="Frecuencia", x = "Escolaridad madre pareja", title="Escolaridad madre pareja")
+
+p3 <- ggplot(datos, aes(Escolaridad_padre_jefe)) + 
+          geom_bar(fill="#558D95") +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                plot.margin = margin(0,0,2,1, "cm")) +
+          ylim(0,5000) +
+          labs(y="Frecuencia", x = "Escolaridad padre jefe", title="Escolaridad padre jefe") 
+
+p4 <- ggplot(datos, aes(Escolaridad_padre_pareja)) + 
+          geom_bar(fill="#69BA77") +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                plot.margin = margin(0,0,2,1, "cm")) +
+          ylim(0,5000) +
+          labs(y="Frecuencia", x = "Escolaridad padre pareja", title="Escolaridad padre pareja")
+
+
+grid.arrange(p1, p2, p3, p4, ncol=2)
+```
+En esta parte, se tiene la gráficas de frecuencia para las variables que indagan la escolaridad del padre y de la madre, distinguiendo por si es pareja o es jefe de hogar, dichas gráficas representan que la mayoría de los individuos que contestaron la encuesta, alcanzaron su escolaridad hasta completar la secundaria. 
+
+Nuevamente se registran tendencias casi exactas entre este grupo de variables, y por ello se decide recoger toda esta información por principio de parsimonia, en una sola variable que es el nivel educativo del jefe de hogar. 
+
+# Nota:
+
+El principio de parsimonia, es un concepto añadido por el filosofo Guillermo de Ockham, el cuál dice que lo sencillo es lo mejor, al menos la mayoría de veces;es decir, que si dos o más modelos describen adecuadament de alguna manera un conjunto de datos, entonces el que contenga una menor cantidad de parámetros tendrá una mejor capacidad de predicción. Fuente: Science Direct
+
+# Grafico de Barras para las variable estado civil.
+```{r, fig.height=6}
+ggplot(datos, aes(Estado_civil_jefe)) + 
+          geom_bar(fill="#69BA77") +
+          theme(axis.text.x = element_text(angle = 30, hjust = 1),
+                plot.margin = margin(0,0,0,0, "cm")) +
+          ylim(0,15000) +
+          labs(y="Frecuencia", x = "Estado civil jefe", title="Estado civil jefe")
+```
+En cuanto a la variable estado civil del jefe de hogar, la información se reparte entre estar casado y no estarlo, siendo no estar casado pero vivir con su pareja más de dos años el nivel que más se repite. 
+
+# Tabla de Frecuencias de las Variables Número de Hijos y Número de personas por casa
+```{r}
+kable(table(datos$Hijos),caption = "Frecuencia Número de Hijos",col.names = c("Número de Hijos","Frecuencia"))
+kable(table(datos$Numero_personas_por_casa),caption = "Frecuencia Número de personas por casa",col.names = c("Número de personas por casa","Frecuencia"))
+```
+
+### Selección de Variables 
+
+Como se explicó en la exploración de los datos, hay redundancia en la información incial entre algunos bloques de variables; por tanto se decide plantear una base de datos solo con las siguientes variables.
+
+
+|Variable | Clase|
+|----------------- | -------------------|
+|Nivel Educativo Jefe | Categoríca |
+|Grado Satisfacción Jefe | Numérica |
+|Estado Civil Jefe | Categoríca |
+|Número de Hijos | Númerica (Entero) |
+|Número de Personas por Casa | Numérica (Entero) |
+
+### Exploración de Relaciones entre las variables
+
+```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
+datos$Hijos<-as.integer(datos$Hijos)
+p1 <- ggplot(data = datos, aes(Nivel_educativo_jefe,Hijos)) + 
+  geom_count() + 
+  aes(color=as.factor(..n..)) +
+  ggtitle("Hijos por nivel educativo") + 
+  labs(x = "Nivel Educativo jefe",y = "Hijos") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  scale_y_continuous(breaks = seq(1, 10, length.out=10))+ 
+  scale_colour_viridis_d(option="magma")
+
+plotly::ggplotly(p1)
+```   
+El anterior gráfico relaciona el nivel educativo del jefe de hogar con él número de hijos, además él tamaño del circúlo hace referencia a las veces que existe ese dato en particular, es decir a mayor tamaño mayor cantidad de información para esa combinación de caracteristicas en específico y lo mismo ocurre con la tonalidad de los circulos,entre más claros mayor información. 
+De está manera es fácil observar que la mayor cantidad de la información está en el nivel de educación de basica primaria combinado con uno(1) y dos(2) hijos. En general según la gráfica, la mayoría de los datos se concentra en los niveles de educación más bajo con un número de hijos de uno (1) a cuatro(4). Adémas, hay una importante cantidad de jefes de hogar en el nivel de educación universitario con titulo, que tiene entre uno (1) y dos (2) hijos. 
+
+Al observar los hijos (superior o igual a siete(7)), más altos en la información, estos corresponde a los niveles más bajos de educación; siendo postgrado el nivel de educuación que presenta la menor cantidad de hijos, auqnue es también considerable. 
+
+```{r,warning=FALSE,message=FALSE,fig.width=15,fig.height=4}
+p1 <- ggplot(data = datos) + 
+  geom_bin2d(aes(Nivel_educativo_jefe, Hijos)) +
+  facet_wrap(~factor(Estado_civil_jefe,
+                      levels = levels(as.factor(datos$Estado_civil_jefe)),
+                      labels = c("Esta casado(a)", 
+                                 "Esta separado(a) o divorciado(a)", 
+                                 "Esta soltero(a)", 
+                                 "Esta viudo", 
+                                 "Vive en pareja dos anios o mas", 
+                                 "Vive en pareja dos anios o menos"))
+             ) +
+  ggtitle ("Hijos por nivel educativo y estado civil") + 
+  labs(x = "", y="Hijos") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  scale_y_continuous(breaks = seq(1, 10, length.out=10))+ 
+  scale_fill_gradient(low="lightblue1",high="darkblue") 
+  
+
+plotly::ggplotly(p1)
+```
+Se exploran las relaciones entre las variables número de hijos y nivel educativo, pero haciendo una distinción especial por el estado civil del jefe de hogar. Dicho gráafico muestra la importancia de la variable estado civil, pues en él se observa claramente como cambia la dsitribución de Hijos, en los hogares a medida que cambia el estado civil. 
+
+Para la gráfica a medida que cambia los colores y se vuelven más fuertes, indica mayor cantidad de datos. Facilmente el dato que más se repite es nivel educativo basica primaria, combinado con un (1) hijo y a su vez de estado civil vive en pareja dos (2) años o más y no está casado,esta cambinación repite más de 2000 veces.
+
+En general, la mayor cantidad de información, está en los niveles de estado civil - estar casado y no estar casado pero vivir mas de dos (2) años - y en el intervalo de número de hijos de uno (1) a cuatro (4). 
+
+Así mismo, los que menos tienen hijos son los solteros y sorprende que también los viudos con respectos  a los démas niveles de estado civil.
+
+```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
+p1 <- ggplot(data = datos) + 
+  geom_col(aes(Nivel_educativo_jefe, Hijos,fill=as.factor(Grado_satisfaccion_de_vida_jefe))) + 
+  ggtitle ("Hijos por nivel educativo/Distinción por Grado de Satisfacción") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  labs(x = "Nivel Educativo jefe", y="Frecuencia en número de hijos")
+
+plotly::ggplotly(p1)
+```
+La relación de nivel educativo y número de hijos,incluyendo la variable grado de satisfacción se muestra en el gráfico, las tonalidades (rosas o rojas), corresponde a los niveles de satisfacción más bajos, por el contrario las tonalidades (azules o verdes),corresponde a los grados de satisfacción más altos en la calidad de vida de los jefes de hogar. 
+En todos los niveles de educación, al parecer los jefes de hogar más satisfechos con la calidad de vida en nombre de sus familias, son los que tienen más hijos. 
+
+
+```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
+p1 <- ggplot(data = datos) + 
+  geom_bin2d(aes(Nivel_educativo_jefe, Numero_personas_por_casa)) +
+  facet_wrap(~factor(Estado_civil_jefe,
+                      levels = levels(as.factor(datos$Estado_civil_jefe)),
+                      labels = c("Esta casado(a)", 
+                                 "Esta separado(a) o divorciado(a)", 
+                                 "Esta soltero(a)", 
+                                 "Esta viudo", 
+                                 "Vive en pareja dos anios o mas", 
+                                 "Vive en pareja dos anios o menos"))
+             ) +
+  ggtitle ("Numero de personas por nivel educativo y estado civil") + 
+  labs(x = "", y="Numero personas por Casa") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  scale_fill_gradient(low="lightblue1",high="darkblue") 
+
+plotly::ggplotly(p1)
+
+```
+Se verifica las posibles relaciones del nivel educativo con el número de personas que viven por cada hogar, distinguiendo por estado civil; sigue siendo mayoría el nivel de no estar casado pero vivir más de dos años con la pareja combinado con los niveles de educación más bajos y con un intervalo de personas en casa de (1) a aproximadamente (5) personas por hogar. 
+
+
+```{r,warning=FALSE,message=FALSE,fig.width=8,fig.height=4}
+p1 <- ggplot(data = datos) + 
+  geom_col(aes(Nivel_educativo_jefe, Numero_personas_por_casa,fill=as.factor(Grado_satisfaccion_de_vida_jefe))) + 
+  ggtitle ("Numero de personas por casa por nivel educativo/Distinción por Grado de Satisfacción") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin=margin(0,0,0,1, "cm")) +
+  labs(x = "Nivel Educativo jefe", y="Frecuencia en Numero de personas")
+
+plotly::ggplotly(p1)
+```
+Al explorar la relación de nivel educativo y número de personas por casa,incluyendo la variable grado de satisfacción se encuentra que  los jefes de hogares con mejores indices de satisfacción de su vida, son los que tienen más personas en sus hogares es decir las familias más grandes. 
+
+### Conclusión ánalisis descriptivo
+
+$\textbf{1}$. Sin hacer un ánalisis riguroso se encuentran muchas similitudes en varios grupos de variables, por tanto se suprime algunas variables y dejando para el modelo aquellas que instintivamente se notan más importantes para explicar la variable respuesta. 
+
+$\textbf{2}$. Se analizan posibles relaciones entre las variables, encontrando relaciones muy fuertes como por ejemplo el estado civil y el nivel educativo con él número de hijos por hogar. 
+
+### Usuarios 
+
+El modelo estadístico que se va a presentar a continuación mediante una aplicación en Shiny, está dirigido a empresarios,jefes de recursos humanos, dueños de empresas en el territorio Nacional, que quizás estén interesados en predecir el número de hijos que tienen o pueden tener sus empleados. También está dirigido a estudiantes, investigadores o Universitarios, que puedan usar la aplicación para fines de tipo académico. 
+
+
+### Modelos Estadísticos
+
+El objetivo es la construcción de un modelo predictivo, que sirva para establecer predicciones de la variable número de hijos con base en ciertas características del jefe de hogar. Para la obtención de dicho modelo se construyen varios tipos de modelos, siguiendo ciertas metodologías estadísticas con el objetivo de establecer buenas predecciones, teniendo como prioriodad un modelo sencillo y eficiente, que se ajuste a el comportamiento de los datos. 
+
+A continuación se presentan diferentes propuestas de modelos, que se aplicaron a los datos. 
+
+### MODELO REGRESIÓN LINEAL MÚLTIPLE
+
+Se programa un modelo de Regresión Linela Múltiple, con 18 co-variables y una (1) variable respuesta:
+```{r,echo=FALSE}
+datos_sel <- datos %>% 
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos','Numero_personas_por_casa')) %>%
+    mutate(Nivel_educativo_jefe = as.data.frame(dummy.code(Nivel_educativo_jefe))) %>%
+    mutate(Estado_civil_jefe = as.data.frame(dummy.code(Estado_civil_jefe)))  
+```
+```{r,echo=FALSE}
+datos_seleccionados=subset(datos,select =c("Nivel_educativo_jefe","Estado_civil_jefe","Grado_satisfaccion_de_vida_jefe","Numero_personas_por_casa","Hijos" ))
+```
+Por el tipo de variables, se crean variables dummy; con el objetivo de analizar cada nivel de cada variable, a continuación se presenta la tabla de análisis de Varianza ANOVA. 
+```{r}
+modelo=lm(Hijos~Nivel_educativo_jefe+Estado_civil_jefe+Grado_satisfaccion_de_vida_jefe+Numero_personas_por_casa,data = datos_seleccionados)
+anova(modelo)
+```
+Dicho modelo tiene las siguientes estadísticas de resumen: 
+
+|$\sigma$ | $R^{2}_{Ajustado}$| $Valor_{p}$|
+|-------- | ------------------|------------|
+|0.6746| 0.6344 | 2.2e-16 |
+
+La estimación de error $\sigma$ es alta, pues corresponde a el error que comete el modelo, el valor de $R^{2}_{Ajustado}$ es óptimo y el $Valor_{p}$ de la prueba indica que el modelo es significativo. 
+
+Con respecto a la validación de supuestos que se debe cumplir, no existe normalidad en la distribución de los errores y tampoco hay varianza constante en los residuales del modelo. 
+
+Se intenta, mejorar el modelo con transformaciones como $y^{*}=y^{2}$, $y^{*}=y^{3}$,$y^{*}=\sqrt{y}$ e incluso con transformaciones de tipo Box-cox, pero no se logra validar ninguno de los supuestos; por tanto se descarta el modelo de regresión lineal múltiple. Cabe aclarar, que desde el principio no convenía pues el número de covariables es grande y esto viola el principio de buscar un modelo simple para la explicación de los datos. 
+
+### Modelo de k-nearest neighbors KNN
+
+El algoritmo de KNN, permite la integración de un modelo con pruebas de validacion CV (Cross Validation), lo cuál es bastante interesante porque permite la construcción de un modelo y la verificaión del mismo mediante varias métricas, como las que se usaron a continuación: 
+
+Primero, para la adecuación de las entradas de la función se debe organizar toda la información como se requiere, para empezar se normaliza las variables cuantititavas y se particiona la base de datos de manera aleatoria; por la cantidad de datos dicha partición se hace 50$\%$ para los datos de entrenamiento (Train) y 50$\%$ para los datos de validación o prueba (Test).
+
+```{r}
+#base de datos sin normalizar
+datos_sel <- datos %>% 
+  select(c('Nivel_educativo_jefe','Estado_civil_jefe','Grado_satisfaccion_de_vida_jefe','Hijos','Numero_personas_por_casa')) %>%
+    mutate(Nivel_educativo_jefe = as.data.frame(dummy.code(Nivel_educativo_jefe))) %>%
+    mutate(Estado_civil_jefe = as.data.frame(dummy.code(Estado_civil_jefe)))  
+
+#se normalizan las variables cuantitativas
+datos_normalizados=datos_sel
+datos_normalizados$Grado_satisfaccion_de_vida_jefe=scale(datos_normalizados$Grado_satisfaccion_de_vida_jefe,center = TRUE, scale = TRUE)
+datos_normalizados$Numero_personas_por_casa=scale(datos_normalizados$Numero_personas_por_casa,center = TRUE, scale = TRUE)
+
+```
+```{r}
+numero<-123456789
+set.seed(numero)
+subset<-sample((1:nrow(datos_normalizados)), (nrow(datos_normalizados)/2)+1)
+Train<-datos_normalizados[subset,] #9662 datos Entrena
+Test<-datos_normalizados[-subset,] #9661 datos Validación
+Train1<-Train[,-4]
+Test1<-Test[,-4]
+y_Train<-Train$Hijos
+y_Test<-Test$Hijos
+```
+
+
+Para la generación del modelo, se requiere conocer el valor de K óptimo. Para ello se emplea la función 'Train' del paquete Caret, y se escoge el valor de K que minimiza la tasa de error RMSE. 
+
+```{r,warning=FALSE,message=FALSE}
+cv10<-trainControl(method='cv',number = 10)
+set.seed(123456789)
+fit<-train(Hijos~Nivel_educativo_jefe+Grado_satisfaccion_de_vida_jefe+Estado_civil_jefe+Numero_personas_por_casa,
+method = 'knn',
+tuneGrid = expand.grid(k=1:20),
+trControl = cv10,
+metric = "RMSE",
+data = datos)
+```
+La salida de la función es amplia, pero se concluye que el valor óptimo para k es 18. 
+Por tanto se implementa un modelo de Knn, con $k=18$
+```{r,message=FALSE,warning=FALSE}
+### COPIAR EL MODELO QUE USO JEAN PAUL PARA LA APP
+mod_knn_train<-knn(train=Train1,test=Train1,cl=y_Train,k=18,prob = TRUE)
+mod_knn_test<-knn(train=Train1,test=Test1,cl=y_Train,k=18)
+summary(mod_knn_test)
+summary(mod_knn_train)
+summary(as.factor(y_Train))
+matriz_confusion<-confusionMatrix(mod_knn_train, as.factor(y_Train))
+matriz_confusion$table
+error_knn<-1-matriz_confusion$overall['Accuracy']
+names(error_knn) <- 'Tasa de error'
+error_knn #Tasa de error
+```
+El modelo de knn se logra implementar satisfactoriamente, con una Tasa de error de 0.214, la cuál es aceptable. La matriz de confusión en donde se especifica también la validez del modelo, indica una gran asertividad a la hora de la clasificación del nivel de la variable número de hijos. 
+Por tanto se escoge dicho modelo para la reproducción de la app. 
+
+
+### Citaciones 
+
+Los datos para el desarrollo se obtuvieron de: 
+
+COLOMBIA - Encuesta Nacional de Calidad de Vida - ECV 2018. (2019, 30 abril). DANE. http://microdatos.dane.gov.co/index.php/catalog/607/get_microdata
+
+### Bibliografía
+
+Mary Beth Seasholtz, Bruce Kowalski,
+The parsimony principle applied to multivariate calibration,Analytica Chimica Acta, Volume 277, Issue 2,1993,Pages 165-177,ISSN 0003-2670,
+https://doi.org/10.1016/0003-2670(93)80430-S.
+(https://www.sciencedirect.com/science/article/pii/000326709380430S)
+
+
+ZULUAGA, Blanca; JARAMILLO, Luis  and  GAMBOA, Luis.Economic conditions and birth spacing in Colombia: a semi-parametric approach. Lect. Econ. [online]. 2017, n.87, pp.97-123. ISSN 0120-2596. Pulicado en Scielo. https://doi.org/10.17533/udea.le.n87a04.
+
+
+
